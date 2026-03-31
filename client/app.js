@@ -112,22 +112,30 @@ socket.on("existing-users", async (users) => {
             pc.addTrack(track, localStream);
         });
 
-        pc.ontrack = (event) => {
-            let videoEl = document.getElementById(userId);
+       pc.ontrack = (event) => {
+    let videoEl = document.getElementById(userId);
 
-            if (!videoEl) {
-                videoEl = document.createElement("video");
-                videoEl.id = userId;
-                videoEl.autoplay = true;
-                videoEl.playsInline = true;
+    if (!videoEl) {
+        videoEl = document.createElement("video");
+        videoEl.id = userId;
+        videoEl.autoplay = true;
+        videoEl.playsInline = true;
+        videoEl.muted = true;
 
-                document.getElementById("videoContainer").appendChild(videoEl);
-                updateLayout();
-                updateParticipants();
-            }
+        document.getElementById("videoContainer").appendChild(videoEl);
+        updateLayout();
+        updateParticipants();
+    }
 
-            videoEl.srcObject = event.streams[0];
-        };
+    if (event.streams && event.streams[0]) {
+        videoEl.srcObject = event.streams[0];
+
+        // 🔥 important for mobile
+        videoEl.play().catch(err => {
+            console.log("Video play error:", err);
+        });
+    }
+};
 
         pc.onicecandidate = (event) => {
             if (event.candidate) {
@@ -160,22 +168,30 @@ socket.on("user-joined", async ({ userId, name }) => {
         pc.addTrack(track, localStream);
     });
 
-    pc.ontrack = (event) => {
-        let videoEl = document.getElementById(userId);
+  pc.ontrack = (event) => {
+    let videoEl = document.getElementById(userId);
 
-        if (!videoEl) {
-            videoEl = document.createElement("video");
-            videoEl.id = userId;
-            videoEl.autoplay = true;
-            videoEl.playsInline = true;
+    if (!videoEl) {
+        videoEl = document.createElement("video");
+        videoEl.id = userId;
+        videoEl.autoplay = true;
+        videoEl.playsInline = true;
+        videoEl.muted = true;
 
-            document.getElementById("videoContainer").appendChild(videoEl);
-            updateLayout();
-            updateParticipants();
-        }
+        document.getElementById("videoContainer").appendChild(videoEl);
+        updateLayout();
+        updateParticipants();
+    }
 
+    if (event.streams && event.streams[0]) {
         videoEl.srcObject = event.streams[0];
-    };
+
+        // 🔥 important for mobile
+        videoEl.play().catch(err => {
+            console.log("Video play error:", err);
+        });
+    }
+};
 
     pc.onicecandidate = (event) => {
         if (event.candidate) {
@@ -201,22 +217,30 @@ socket.on("offer", async ({ offer, from }) => {
         pc.addTrack(track, localStream);
     });
 
-    pc.ontrack = (event) => {
-        let videoEl = document.getElementById(from);
+  pc.ontrack = (event) => {
+    let videoEl = document.getElementById(from);
 
-        if (!videoEl) {
-            videoEl = document.createElement("video");
-            videoEl.id = from;
-            videoEl.autoplay = true;
-            videoEl.playsInline = true;
+    if (!videoEl) {
+        videoEl = document.createElement("video");
+        videoEl.id = userId;
+        videoEl.autoplay = true;
+        videoEl.playsInline = true;
+        videoEl.muted = true;
 
-            document.getElementById("videoContainer").appendChild(videoEl);
-            updateLayout();
-            updateParticipants();
-        }
+        document.getElementById("videoContainer").appendChild(videoEl);
+        updateLayout();
+        updateParticipants();
+    }
 
+    if (event.streams && event.streams[0]) {
         videoEl.srcObject = event.streams[0];
-    };
+
+        // 🔥 important for mobile
+        videoEl.play().catch(err => {
+            console.log("Video play error:", err);
+        });
+    }
+};
 
     pc.onicecandidate = (event) => {
         if (event.candidate) {
