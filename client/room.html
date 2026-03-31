@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Videomeet Room</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+
+  <!-- Icons -->
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+  <style>
+    body {
+      margin: 0;
+      background: #0f172a;
+      color: white;
+      font-family: Arial;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* Video Grid */
+    #videoContainer {
+      flex: 1;
+      display: grid;
+      gap: 10px;
+      padding: 10px;
+    }
+
+    video {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      object-fit: cover;
+      border-radius: 10px;
+      background: black;
+    }
+
+    /*  MODERN CONTROL BAR */
+    .controls {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+
+      display: flex;
+      align-items: center;
+      gap: 15px;
+
+      background: rgba(15, 23, 42, 0.7);
+      backdrop-filter: blur(12px);
+
+      padding: 10px 15px;
+      border-radius: 50px;
+
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+
+    /*  Buttons */
+    .controls button {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+
+      border: none;
+      font-size: 20px;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .controls button:hover {
+      transform: translateY(-2px);
+    }
+
+    .controls button:active {
+      transform: scale(0.9);
+    }
+
+    /*  Mute */
+    #muteBtn {
+      background: #1e293b;
+      color: white;
+    }
+
+    /*  Share */
+    #shareBtn {
+      background: #1e293b;
+      color: white;
+    }
+
+    /*  Leave */
+    #leaveBtn {
+      background: red;
+      color: white;
+    }
+
+    /* 👥 Participants */
+    #participantsCount {
+      font-size: 14px;
+      opacity: 0.8;
+      margin-left: 5px;
+    }
+
+    /* MOBILE */
+    @media (max-width: 768px) {
+      #videoContainer {
+        grid-template-columns: 1fr !important;
+        padding: 5px;
+        gap: 8px;
+      }
+
+      video {
+        border-radius: 8px;
+      }
+
+      .controls {
+        bottom: 10px;
+        gap: 10px;
+        padding: 8px 12px;
+      }
+
+      .controls button {
+        width: 45px;
+        height: 45px;
+        font-size: 18px;
+      }
+    }
+  </style>
+
+</head>
+
+<body>
+
+  <!--  NAME POPUP -->
+  <div id="namePopup" style="
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background:rgba(0,0,0,0.8);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    z-index:999;
+  ">
+    <div style="background:white; padding:20px; border-radius:10px; text-align:center;">
+      <h3>Enter your name</h3>
+      <input id="nameInput" type="text" placeholder="Your name" style="padding:8px; margin:10px;" />
+      <br>
+      <button id="joinBtn">Join</button>
+    </div>
+  </div>
+
+  <!--  Video Grid -->
+  <div id="videoContainer">
+    <video id="myVideo" autoplay muted playsinline></video>
+  </div>
+
+  <!--  MODERN CONTROLS -->
+  <div class="controls">
+
+    <button id="muteBtn" title="Mute">
+      <i class="ph ph-microphone"></i>
+    </button>
+
+    <button id="shareBtn" title="Share">
+      <i class="ph ph-share-network"></i>
+    </button>
+
+    <button id="leaveBtn" title="Leave">
+      <i class="ph ph-phone-disconnect"></i>
+    </button>
+
+    <span id="participantsCount">👥 1</span>
+
+  </div>
+
+  <!--  SHARE POPUP -->
+  <div id="sharePopup" style="
+    display:none;
+    position:fixed;
+    top:30%;
+    left:50%;
+    transform:translate(-50%, -50%);
+    background:#1e293b;
+    padding:20px;
+    border-radius:10px;
+    color:white;
+  ">
+    <h3>Share Meeting</h3>
+
+    <p>
+      Room ID: <span id="roomIdText"></span>
+      <button id="copyRoomBtn">Copy</button>
+    </p>
+
+    <p>
+      Share Link
+      <button id="copyLinkBtn">Copy</button>
+    </p>
+
+    <br>
+    <button id="closePopup">Close</button>
+  </div>
+
+  <!-- Scripts -->
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/app.js"></script>
+
+</body>
+</html>

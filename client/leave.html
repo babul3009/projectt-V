@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project Vmeet | Leave</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Montserrat', sans-serif;
+}
+
+body {
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #121418;
+    color: white;
+}
+
+/* 🔥 Card */
+.leave-card {
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 30px 20px;
+    width: 90%;
+    max-width: 400px;
+    text-align: center;
+}
+
+/* 🔥 Image */
+.custom-png {
+    width: 220px;
+    margin-bottom: 10px;
+}
+
+/* 🔥 Text */
+.message-main {
+    font-size: 1.4rem;
+    font-weight: 700;
+}
+
+.message-sub {
+    font-size: 0.9rem;
+    color: rgba(255,255,255,0.6);
+    margin-bottom: 15px;
+}
+
+/* 🔥 Buttons */
+.button-container {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+.btn {
+    padding: 12px 16px;
+    border-radius: 10px;
+    border: none;
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: 0.2s;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+}
+
+.btn-rejoin {
+    background: #4A90E2;
+    color: white;
+}
+
+.btn-home {
+    background: white;
+    color: black;
+}
+
+/* 📱 Mobile */
+@media (max-width: 480px) {
+    .custom-png {
+        width: 180px;
+    }
+
+    .button-container {
+        flex-direction: column;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="leave-card">
+
+    <img src="assests/paperplane.png" class="custom-png">
+
+    <h1 class="message-main">You left the room</h1>
+    <p class="message-sub">Hope to see you again 👋</p>
+
+    <div class="button-container">
+        <button class="btn btn-rejoin">
+            <i class="ph ph-arrow-clockwise"></i> Rejoin
+        </button>
+
+        <button class="btn btn-home">
+            <i class="ph ph-house"></i> Home
+        </button>
+    </div>
+
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+
+    const params = new URLSearchParams(window.location.search);
+    const roomId = params.get("room");
+
+    const rejoinBtn = document.querySelector(".btn-rejoin");
+    const homeBtn = document.querySelector(".btn-home");
+
+    if (rejoinBtn) {
+        rejoinBtn.addEventListener("click", () => {
+            if (roomId) {
+                window.location.href = `/room/${roomId}`;
+            } else {
+                alert("No room to rejoin");
+            }
+        });
+    }
+
+    if (homeBtn) {
+        homeBtn.addEventListener("click", () => {
+            window.location.href = "/";
+        });
+    }
+
+});
+</script>
+
+</body>
+</html>

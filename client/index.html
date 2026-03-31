@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Videom App homepage</title>
+</head>
+<body>
+
+  <h1></h1>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<title>Videom home UI</title>
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    background: linear-gradient(135deg, #eef4f9, #dfeaf3);
+}
+
+.container {
+    max-width: 1100px;
+    margin: auto;
+    padding: 30px;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo {
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.share-btn {
+    background: #ff8c5a;
+    color: white;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.share-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+.main {
+    display: flex;
+    align-items: center;
+    margin-top: 50px;
+    gap: 40px;
+}
+
+.left {
+    flex: 1;
+}
+
+.left h1 {
+    font-size: 36px;
+    color: #2b3a55;
+}
+
+.left p {
+    margin: 15px 0;
+    color: #6c7a89;
+}
+
+.start-btn {
+    background: #3dbb8a;
+    color: white;
+    border: none;
+    padding: 14px;
+    border-radius: 8px;
+    width: 260px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: 0.3s;
+}
+
+.start-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+}
+
+.join-section {
+    margin-top: 12px;
+    display: flex;
+    width: 260px;
+}
+
+.join-section input {
+    flex: 1;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 8px 0 0 8px;
+    outline: none;
+}
+
+.join-section button {
+    padding: 12px 16px;
+    border: none;
+    background: #e6e9ee;
+    border-radius: 0 8px 8px 0;
+    cursor: pointer;
+}
+
+.join-section button:hover {
+    background: #d1d5db;
+}
+
+.right {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+}
+
+.right img {
+    width: 100%;
+    max-width: 500px;
+    border-radius: 12px;
+}
+
+.features {
+    margin-top: 50px;
+    display: flex;
+    gap: 20px;
+    padding: 25px;
+    border-radius: 15px;
+    background: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.3);
+    text-align: center;
+}
+
+.feature {
+    flex: 1;
+}
+
+.feature p {
+    color: gray;
+    font-size: 14px;
+}
+
+.footer {
+    margin-top: 40px;
+    background: #5d90d2;
+    color: white;
+    text-align: center;
+    padding: 20px;
+    border-radius: 10px;
+}
+
+@media (max-width: 500px) {
+    .main {
+        flex-direction: column;
+    }
+}
+
+.icon {
+    font-size: 28px;
+    margin-bottom: 10px;
+    color: #ff8c5a;
+}
+
+.footer {
+    margin-top: 40px;
+    background: #498de7;
+    color: white;
+    padding: 15px 20px;
+    border-radius: 10px;
+}
+
+/* 🔥 ONE LINE LAYOUT */
+.footer-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap; /* mobile safe */
+}
+
+/* Brand text */
+.brand {
+    font-weight: bold;
+}
+
+/* Links */
+.footer-link {
+    text-decoration: none;
+    color: #cbd5e1;
+    transition: 0.3s;
+}
+
+.footer-link:hover {
+    color: white;
+}
+
+/* Socials inline */
+.socials {
+    display: flex;
+    gap: 10px;
+}
+
+/* Social buttons */
+.socials a {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: rgba(255,255,255,0.1);
+    border-radius: 50%;
+
+    color: white;
+    text-decoration: none;
+    transition: 0.3s;
+}
+
+.socials a:hover {
+    transform: translateY(-3px);
+    background: white;
+}
+
+/* Brand hover colors */
+.socials a:nth-child(1):hover i {
+    color: #e1306c;
+}
+
+.socials a:nth-child(2):hover i {
+    color: #000000;
+}
+
+.socials a:nth-child(3):hover i {
+    color: #0077b5;
+}
+
+@media (max-width: 768px) {
+
+    .main {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .left h1 {
+        font-size: 26px;
+    }
+
+    .start-btn {
+        width: 100%;
+    }
+
+    .join-section {
+        width: 100%;
+    }
+
+    .join-section input {
+        width: 100%;
+    }
+
+    .right img {
+        max-width: 300px;
+        margin-top: 20px;
+    }
+
+    .features {
+        flex-direction: column; 
+        text-align: center;
+        gap: 15px;
+    }
+
+    .feature{
+        padding: 10px;
+    }
+    
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <!-- Header -->
+    <div class="header">
+        <div class="logo">projectt V....</div>
+        <button class="share-btn">Share This App</button>
+    </div>
+
+    <!-- Main -->
+    <div class="main">
+
+        <div class="left">
+            <h1>Simple, Instant <br> Video Calls for Friends.</h1>
+            <p>No accounts. No downloads. Just click and connect in seconds.</p>
+
+            <button class="start-btn" onclick="startCall()">Start a Video Call</button>
+
+            <div class="join-section">
+                <input type="text" id="roomCode" placeholder="Enter Code">
+                <button onclick="joinCall()">Join</button>
+            </div>
+        </div>
+
+        <div class="right">
+            <img src="assests/homepage.png" alt="video preview">
+        </div>
+
+    </div>
+
+    <!-- Features -->
+<div class="features">
+    <div class="feature">
+        <i class="fa-solid fa-user-lock icon"></i>
+        <h3>No Sign-Up Required</h3>
+        <p>Start instantly without account.</p>
+    </div>
+
+    <div class="feature">
+        <i class="fa-solid fa-shield-halved icon"></i>
+        <h3>Secure & Private</h3>
+        <p>Encrypted peer-to-peer calls.</p>
+    </div>
+
+    <div class="feature">
+        <i class="fa-solid fa-download icon"></i>
+        <h3>Zero Downloads</h3>
+        <p>Works directly in browser.</p>
+    </div>
+</div>
+
+    <!-- Footer -->
+   <div class="footer">
+    <div class="footer-content">
+
+        <span class="brand">projectt v....</span>
+
+        <a href="#" class="footer-link">About</a>
+        <a href="#" class="footer-link">Privacy</a>
+
+        <div class="socials">
+            <a href="#"><i class="fa-brands fa-instagram"></i></a>
+            <a href="#"><i class="fa-brands fa-x-twitter"></i></a>
+            <a href="#"><i class="fa-brands fa-linkedin"></i></a>
+        </div>
+
+    </div>
+</div>
+</div>
+    </div>
+
+</div>
+
+<script>
+function generateRoomId() {
+    return Math.random().toString(36).substring(2, 10);
+}
+
+function startCall() {
+    const roomId = generateRoomId();
+    window.location.href = `/room/${roomId}`;
+}
+
+function joinCall() {
+    let code = document.getElementById("roomCode").value.trim();
+
+    if (code === "") {
+        alert("Please enter a room code!");
+        return;
+    }
+
+    window.location.href = `/room/${code}`;
+}
+</script>
+
+</body>
+</html>
+
+  //<script>
+    // 🔥 Generate random room ID
+    function generateRoomId() {
+      return Math.random().toString(36).substring(2, 8);
+    }
+
+    // 🔥 Start Meeting
+    document.getElementById("startBtn").addEventListener("click", () => {
+      const roomId = generateRoomId();
+      window.location.href = `/room/${roomId}`;
+    });
+
+    // 🔥 Join Meeting
+    document.getElementById("joinBtn").addEventListener("click", () => {
+      const roomId = document.getElementById("roomInput").value.trim();
+
+      if (!roomId) {
+        alert("Please enter room ID");
+        return;
+      }
+
+      window.location.href = `/room/${roomId}`;
+    });
+  </script>//
