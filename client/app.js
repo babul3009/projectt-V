@@ -360,37 +360,74 @@ leaveBtn.addEventListener("click", () => {
     }
 });
 
+
 // ================= SHARE POPUP =================
 
 const shareBtn = document.getElementById("shareBtn");
 const popup = document.getElementById("sharePopup");
 const closePopup = document.getElementById("closePopup");
 
-const roomIdText = document.getElementById("roomIdText");
+const roomIdInput = document.getElementById("roomIdText");
+const linkInput = document.getElementById("linkText");
+
 const copyRoomBtn = document.getElementById("copyRoomBtn");
 const copyLinkBtn = document.getElementById("copyLinkBtn");
 
 // Open popup
 if (shareBtn) {
     shareBtn.addEventListener("click", () => {
-        popup.style.display = "block";
-        roomIdText.innerText = roomId;
+        popup.style.display = "flex";
+
+        if (roomIdInput) {
+            roomIdInput.value = roomId;
+        }
+
+        if (linkInput) {
+            linkInput.value = `${window.location.origin}/room/${roomId}`;
+        }
     });
 }
 
-// Close popup
+// Close popup (button)
 if (closePopup) {
     closePopup.addEventListener("click", () => {
         popup.style.display = "none";
     });
 }
 
+// Close popup when clicking outside
+if (popup) {
+    popup.addEventListener("click", (e) => {
+        if (e.target === popup) {
+            popup.style.display = "none";
+        }
+    });
+}
+
+// Copy function (with fallback for mobile)
+function copyText(text, button) {
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(text);
+    } else {
+        // fallback
+        const temp = document.createElement("textarea");
+        temp.value = text;
+        document.body.appendChild(temp);
+        temp.select();
+        document.execCommand("copy");
+        document.body.removeChild(temp);
+    }
+
+    button.innerHTML = "Copied!";
+    setTimeout(() => {
+        button.innerHTML = '<i class="ph ph-copy"></i>';
+    }, 1500);
+}
+
 // Copy Room ID
 if (copyRoomBtn) {
     copyRoomBtn.addEventListener("click", () => {
-        navigator.clipboard.writeText(roomId);
-        copyRoomBtn.innerText = "Copied!";
-        setTimeout(() => copyRoomBtn.innerText = "Copy", 1500);
+        copyText(roomId, copyRoomBtn);
     });
 }
 
@@ -398,8 +435,6 @@ if (copyRoomBtn) {
 if (copyLinkBtn) {
     copyLinkBtn.addEventListener("click", () => {
         const fullLink = `${window.location.origin}/room/${roomId}`;
-        navigator.clipboard.writeText(fullLink);
-        copyLinkBtn.innerText = "Copied!";
-        setTimeout(() => copyLinkBtn.innerText = "Copy", 1500);
+        copyText(fullLink, copyLinkBtn);
     });
 }

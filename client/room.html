@@ -130,6 +130,79 @@
         font-size: 18px;
       }
     }
+
+    /* 🔥 POPUP BACKDROP */
+.popup {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(8px);
+  z-index: 1000;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* 🔥 CARD */
+.popup-card {
+  background: rgba(30, 41, 59, 0.9);
+  padding: 25px;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 400px;
+
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+  text-align: center;
+}
+
+/* 🔥 SHARE BOX */
+.share-box {
+  margin-top: 15px;
+  text-align: left;
+}
+
+.share-box span {
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+/* 🔥 COPY ROW */
+.copy-row {
+  display: flex;
+  margin-top: 5px;
+}
+
+.copy-row input {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  border-radius: 8px 0 0 8px;
+  background: #0f172a;
+  color: white;
+}
+
+.copy-row button {
+  padding: 10px;
+  border: none;
+  background: #4A90E2;
+  color: white;
+  border-radius: 0 8px 8px 0;
+  cursor: pointer;
+}
+
+/* 🔥 CLOSE BUTTON */
+.close-btn {
+  margin-top: 20px;
+  padding: 10px;
+  width: 100%;
+  border: none;
+  border-radius: 10px;
+  background: red;
+  color: white;
+  cursor: pointer;
+}
   </style>
 
 </head>
@@ -181,33 +254,34 @@
 
   </div>
 
-  <!--  SHARE POPUP -->
-  <div id="sharePopup" style="
-    display:none;
-    position:fixed;
-    top:30%;
-    left:50%;
-    transform:translate(-50%, -50%);
-    background:#1e293b;
-    padding:20px;
-    border-radius:10px;
-    color:white;
-  ">
+  <!-- MODERN SHARE POPUP -->
+<div id="sharePopup" class="popup">
+
+  <div class="popup-card">
+
     <h3>Share Meeting</h3>
 
-    <p>
-      Room ID: <span id="roomIdText"></span>
-      <button id="copyRoomBtn">Copy</button>
-    </p>
+    <div class="share-box">
+      <span>Room ID</span>
+      <div class="copy-row">
+        <input id="roomIdText" readonly>
+        <button id="copyRoomBtn"><i class="ph ph-copy"></i></button>
+      </div>
+    </div>
 
-    <p>
-      Share Link
-      <button id="copyLinkBtn">Copy</button>
-    </p>
+    <div class="share-box">
+      <span>Invite Link</span>
+      <div class="copy-row">
+        <input id="linkText" readonly>
+        <button id="copyLinkBtn"><i class="ph ph-copy"></i></button>
+      </div>
+    </div>
 
-    <br>
-    <button id="closePopup">Close</button>
+    <button id="closePopup" class="close-btn">Close</button>
+
   </div>
+
+</div>
 
   <!-- Scripts -->
   <script src="/socket.io/socket.io.js"></script>
