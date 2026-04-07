@@ -222,7 +222,7 @@ socket.on("offer", async ({ offer, from }) => {
 
     if (!videoEl) {
         videoEl = document.createElement("video");
-        videoEl.id = userId;
+        videoEl.id = from;
         videoEl.autoplay = true;
         videoEl.playsInline = true;
         videoEl.muted = true;
