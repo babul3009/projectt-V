@@ -11,25 +11,59 @@ let iceQueue = {};
 let hasLeft = false;
 let userName = null;
 
-//  Get roomId from URL
+// 📌 Get roomId from URL
 let roomId = null;
 if (window.location.pathname.includes("/room/")) {
     roomId = window.location.pathname.split("/room/")[1];
 }
 
+// 🌐 ICE CONFIG (STUN + TURN)
 const config = {
     iceServers: [
         { urls: "stun:stun.l.google.com:19302" },
-         {urls: "stun:stun.relay.metered.ca:80",},
-
-        {urls: "turn:global.relay.metered.ca:80",
-        username: "3efd3fe8e3626c590a5bc357",
-        credential: "8kh0ZpUAO1dbNVuK"
+        { urls: "stun:stun.relay.metered.ca:80" },
+        {
+            urls: "turn:global.relay.metered.ca:80",
+            username: "3efd3fe8e3626c590a5bc357",
+            credential: "8kh0ZpUAO1dbNVuK"
         }
     ]
 };
 
-// =================  GRID FIX =================
+// ================= 🔥 COMMON TRACK HANDLER =================
+function handleTrack(pc, userId) {
+    pc.ontrack = (event) => {
+        let videoEl = document.getElementById(userId);
+
+        if (!videoEl) {
+            videoEl = document.createElement("video");
+            videoEl.id = userId;
+            videoEl.autoplay = true;
+            videoEl.playsInline = true;
+            videoEl.muted = false; // remote user audio sunna hai
+
+            document.getElementById("videoContainer").appendChild(videoEl);
+            updateLayout();
+            updateParticipants();
+        }
+
+        const incomingStream = event.streams && event.streams[0];
+        if (!incomingStream) return;
+
+        // same stream dobara set mat karo
+        if (videoEl.srcObject !== incomingStream) {
+            videoEl.srcObject = incomingStream;
+
+            videoEl.onloadedmetadata = () => {
+                videoEl.play().catch(err => {
+                    console.log("Video play error:", err);
+                });
+            };
+        }
+    };
+}
+
+// ================= GRID =================
 function updateLayout() {
     const container = document.getElementById("videoContainer");
     const count = container.querySelectorAll("video").length;
@@ -44,13 +78,13 @@ function updateLayout() {
 // ================= 👥 PARTICIPANTS =================
 function updateParticipants() {
     const count = document.querySelectorAll("#videoContainer video").length;
-    const text = count === 1 ? "Participant" : "Participants";
+    const text = count === 1 ? "P" : "Ps";
 
     document.getElementById("participantsCount").innerText =
         `👥 ${count} ${text}`;
 }
 
-//  Start camera
+// ================= CAMERA =================
 async function startCamera() {
     localStream = await navigator.mediaDevices.getUserMedia({
         video: true,
@@ -58,7 +92,7 @@ async function startCamera() {
     });
 
     video.srcObject = localStream;
-    video.muted = true;
+    video.muted = true; // self video always muted
 
     updateLayout();
     updateParticipants();
@@ -69,39 +103,37 @@ const namePopup = document.getElementById("namePopup");
 const joinBtn = document.getElementById("joinBtn");
 const nameInput = document.getElementById("nameInput");
 
-joinBtn.addEventListener("click", async () => {
-    const name = nameInput.value.trim();
+if (joinBtn) {
+    joinBtn.addEventListener("click", async () => {
+        const name = nameInput.value.trim();
 
-    if (!name) {
-        alert("Please enter your name");
-        return;
-    }
+        if (!name) {
+            alert("Please enter your name");
+            return;
+        }
 
-    userName = name;
+        userName = name;
+        namePopup.style.display = "none";
 
-    namePopup.style.display = "none";
+        await startCamera();
 
-    await startCamera();
-
-    if (!hasLeft && roomId) {
-        socket.emit("join-room", {
-            roomId,
-            name: userName
-        });
-    }
-});
+        if (!hasLeft && roomId) {
+            socket.emit("join-room", {
+                roomId,
+                name: userName
+            });
+        }
+    });
+}
 
 // ================= SOCKET =================
-
 socket.on("connect", () => {
     console.log("Connected:", socket.id);
 });
 
 // ================= EXISTING USERS =================
 socket.on("existing-users", async (users) => {
-
     for (let user of users) {
-
         const { userId } = user;
 
         const pc = new RTCPeerConnection(config);
@@ -112,30 +144,7 @@ socket.on("existing-users", async (users) => {
             pc.addTrack(track, localStream);
         });
 
-       pc.ontrack = (event) => {
-    let videoEl = document.getElementById(userId);
-
-    if (!videoEl) {
-        videoEl = document.createElement("video");
-        videoEl.id = userId;
-        videoEl.autoplay = true;
-        videoEl.playsInline = true;
-        videoEl.muted = true;
-
-        document.getElementById("videoContainer").appendChild(videoEl);
-        updateLayout();
-        updateParticipants();
-    }
-
-    if (event.streams && event.streams[0]) {
-        videoEl.srcObject = event.streams[0];
-
-        // 🔥 important for mobile
-        videoEl.play().catch(err => {
-            console.log("Video play error:", err);
-        });
-    }
-};
+        handleTrack(pc, userId);
 
         pc.onicecandidate = (event) => {
             if (event.candidate) {
@@ -157,7 +166,7 @@ socket.on("existing-users", async (users) => {
 });
 
 // ================= USER JOINED =================
-socket.on("user-joined", async ({ userId, name }) => {
+socket.on("user-joined", async ({ userId }) => {
     if (hasLeft) return;
 
     const pc = new RTCPeerConnection(config);
@@ -168,30 +177,7 @@ socket.on("user-joined", async ({ userId, name }) => {
         pc.addTrack(track, localStream);
     });
 
-  pc.ontrack = (event) => {
-    let videoEl = document.getElementById(userId);
-
-    if (!videoEl) {
-        videoEl = document.createElement("video");
-        videoEl.id = userId;
-        videoEl.autoplay = true;
-        videoEl.playsInline = true;
-        videoEl.muted = true;
-
-        document.getElementById("videoContainer").appendChild(videoEl);
-        updateLayout();
-        updateParticipants();
-    }
-
-    if (event.streams && event.streams[0]) {
-        videoEl.srcObject = event.streams[0];
-
-        // 🔥 important for mobile
-        videoEl.play().catch(err => {
-            console.log("Video play error:", err);
-        });
-    }
-};
+    handleTrack(pc, userId);
 
     pc.onicecandidate = (event) => {
         if (event.candidate) {
@@ -201,8 +187,6 @@ socket.on("user-joined", async ({ userId, name }) => {
             });
         }
     };
-
-    
 });
 
 // ================= OFFER =================
@@ -217,30 +201,7 @@ socket.on("offer", async ({ offer, from }) => {
         pc.addTrack(track, localStream);
     });
 
-  pc.ontrack = (event) => {
-    let videoEl = document.getElementById(from);
-
-    if (!videoEl) {
-        videoEl = document.createElement("video");
-        videoEl.id = from;
-        videoEl.autoplay = true;
-        videoEl.playsInline = true;
-        videoEl.muted = true;
-
-        document.getElementById("videoContainer").appendChild(videoEl);
-        updateLayout();
-        updateParticipants();
-    }
-
-    if (event.streams && event.streams[0]) {
-        videoEl.srcObject = event.streams[0];
-
-        // 🔥 important for mobile
-        videoEl.play().catch(err => {
-            console.log("Video play error:", err);
-        });
-    }
-};
+    handleTrack(pc, from);
 
     pc.onicecandidate = (event) => {
         if (event.candidate) {
@@ -280,7 +241,6 @@ socket.on("answer", async ({ answer, from }) => {
 // ================= ICE =================
 socket.on("ice-candidate", async ({ candidate, from }) => {
     const pc = peerConnections[from];
-
     if (!pc) return;
 
     if (!pc.remoteDescription) {
@@ -311,130 +271,93 @@ socket.on("user-left", (userId) => {
         delete peerConnections[userId];
     }
 
-    if (iceQueue[userId]) {
-        delete iceQueue[userId];
-    }
+    delete iceQueue[userId];
 });
 
 // ================= MUTE =================
 const muteBtn = document.getElementById("muteBtn");
 let isMuted = false;
 
-muteBtn.addEventListener("click", () => {
-    if (!localStream) return;
+if (muteBtn) {
+    muteBtn.addEventListener("click", () => {
+        if (!localStream) return;
 
-    localStream.getAudioTracks().forEach(track => {
-        track.enabled = isMuted;
+        localStream.getAudioTracks().forEach(track => {
+            track.enabled = isMuted;
+        });
+
+        isMuted = !isMuted;
+
+        muteBtn.innerHTML = isMuted
+            ? '<i class="ph ph-microphone-slash"></i>'
+            : '<i class="ph ph-microphone"></i>';
     });
-
-    isMuted = !isMuted;
-
-    // 🔥 ICON SWITCH
-    muteBtn.innerHTML = isMuted
-        ? '<i class="ph ph-microphone-slash"></i>'
-        : '<i class="ph ph-microphone"></i>';
-});
+}
 
 // ================= LEAVE =================
 const leaveBtn = document.getElementById("leaveBtn");
 
-leaveBtn.addEventListener("click", () => {
+if (leaveBtn) {
+    leaveBtn.addEventListener("click", () => {
+        hasLeft = true;
 
-    hasLeft = true;
-
-    if (localStream) {
-        localStream.getTracks().forEach(track => track.stop());
-    }
-
-    Object.values(peerConnections).forEach(pc => pc.close());
-    peerConnections = {};
-
-    document.getElementById("videoContainer").innerHTML = "";
-
-    socket.disconnect();
-
-    if (roomId) {
-        window.location.href = `/leave?room=${roomId}`;
-    } else {
-        window.location.href = `/leave`;
-    }
-});
-
-
-// ================= SHARE POPUP =================
-
-const shareBtn = document.getElementById("shareBtn");
-const popup = document.getElementById("sharePopup");
-const closePopup = document.getElementById("closePopup");
-
-const roomIdInput = document.getElementById("roomIdText");
-const linkInput = document.getElementById("linkText");
-
-const copyRoomBtn = document.getElementById("copyRoomBtn");
-const copyLinkBtn = document.getElementById("copyLinkBtn");
-
-// Open popup
-if (shareBtn) {
-    shareBtn.addEventListener("click", () => {
-        popup.style.display = "flex";
-
-        if (roomIdInput) {
-            roomIdInput.value = roomId;
+        if (localStream) {
+            localStream.getTracks().forEach(track => track.stop());
         }
 
-        if (linkInput) {
-            linkInput.value = `${window.location.origin}/room/${roomId}`;
+        Object.values(peerConnections).forEach(pc => pc.close());
+        peerConnections = {};
+
+        const videoContainer = document.getElementById("videoContainer");
+        if (videoContainer) {
+            videoContainer.innerHTML = "";
+        }
+
+        socket.disconnect();
+
+        if (roomId) {
+            window.location.href = `/leave?room=${roomId}`;
+        } else {
+            window.location.href = `/leave`;
         }
     });
 }
 
-// Close popup (button)
-if (closePopup) {
+// ================= SHARE =================
+const shareBtn = document.getElementById("shareBtn");
+const popup = document.getElementById("sharePopup");
+const closePopup = document.getElementById("closePopup");
+
+const roomIdText = document.getElementById("roomIdText");
+const copyRoomBtn = document.getElementById("copyRoomBtn");
+const copyLinkBtn = document.getElementById("copyLinkBtn");
+
+if (shareBtn && popup && roomIdText) {
+    shareBtn.addEventListener("click", () => {
+        popup.style.display = "block";
+        roomIdText.innerText = roomId;
+    });
+}
+
+if (closePopup && popup) {
     closePopup.addEventListener("click", () => {
         popup.style.display = "none";
     });
 }
 
-// Close popup when clicking outside
-if (popup) {
-    popup.addEventListener("click", (e) => {
-        if (e.target === popup) {
-            popup.style.display = "none";
-        }
-    });
-}
-
-// Copy function (with fallback for mobile)
-function copyText(text, button) {
-    if (navigator.clipboard) {
-        navigator.clipboard.writeText(text);
-    } else {
-        // fallback
-        const temp = document.createElement("textarea");
-        temp.value = text;
-        document.body.appendChild(temp);
-        temp.select();
-        document.execCommand("copy");
-        document.body.removeChild(temp);
-    }
-
-    button.innerHTML = "Copied!";
-    setTimeout(() => {
-        button.innerHTML = '<i class="ph ph-copy"></i>';
-    }, 1500);
-}
-
-// Copy Room ID
 if (copyRoomBtn) {
     copyRoomBtn.addEventListener("click", () => {
-        copyText(roomId, copyRoomBtn);
+        navigator.clipboard.writeText(roomId);
+        copyRoomBtn.innerText = "Copied!";
+        setTimeout(() => copyRoomBtn.innerText = "Copy", 1500);
     });
 }
 
-// Copy Link
 if (copyLinkBtn) {
     copyLinkBtn.addEventListener("click", () => {
         const fullLink = `${window.location.origin}/room/${roomId}`;
-        copyText(fullLink, copyLinkBtn);
+        navigator.clipboard.writeText(fullLink);
+        copyLinkBtn.innerText = "Copied!";
+        setTimeout(() => copyLinkBtn.innerText = "Copy", 1500);
     });
 }
