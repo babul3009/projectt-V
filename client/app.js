@@ -1,23 +1,18 @@
-// 🔌 Connect to server
 const socket = io();
 
-// 🎥 Local video
 const video = document.getElementById("myVideo");
 
-// 🌐 Variables
 let localStream;
 let peerConnections = {};
 let iceQueue = {};
 let hasLeft = false;
 let userName = null;
 
-// 📌 Get roomId from URL
 let roomId = null;
 if (window.location.pathname.includes("/room/")) {
     roomId = window.location.pathname.split("/room/")[1];
 }
 
-// 🌐 ICE CONFIG (STUN + TURN)
 const config = {
     iceServers: [
         { urls: "stun:stun.l.google.com:19302" },
@@ -26,44 +21,26 @@ const config = {
             urls: "turn:global.relay.metered.ca:80",
             username: "3efd3fe8e3626c590a5bc357",
             credential: "8kh0ZpUAO1dbNVuK"
+        },
+        {
+            urls: "turn:global.relay.metered.ca:80?transport=tcp",
+            username: "3efd3fe8e3626c590a5bc357",
+            credential: "8kh0ZpUAO1dbNVuK"
+        },
+        {
+            urls: "turn:global.relay.metered.ca:443",
+            username: "3efd3fe8e3626c590a5bc357",
+            credential: "8kh0ZpUAO1dbNVuK"
+        },
+        {
+            urls: "turns:global.relay.metered.ca:443?transport=tcp",
+            username: "3efd3fe8e3626c590a5bc357",
+            credential: "8kh0ZpUAO1dbNVuK"
         }
-    ]
+    ],
+    iceCandidatePoolSize: 10
 };
 
-// ================= 🔥 COMMON TRACK HANDLER =================
-function handleTrack(pc, userId) {
-    pc.ontrack = (event) => {
-        let videoEl = document.getElementById(userId);
-
-        if (!videoEl) {
-            videoEl = document.createElement("video");
-            videoEl.id = userId;
-            videoEl.autoplay = true;
-            videoEl.playsInline = true;
-            videoEl.muted = false; // remote user audio sunna hai
-
-            document.getElementById("videoContainer").appendChild(videoEl);
-            updateLayout();
-            updateParticipants();
-        }
-
-        const incomingStream = event.streams && event.streams[0];
-        if (!incomingStream) return;
-
-        // same stream dobara set mat karo
-        if (videoEl.srcObject !== incomingStream) {
-            videoEl.srcObject = incomingStream;
-
-            videoEl.onloadedmetadata = () => {
-                videoEl.play().catch(err => {
-                    console.log("Video play error:", err);
-                });
-            };
-        }
-    };
-}
-
-// ================= GRID =================
 function updateLayout() {
     const container = document.getElementById("videoContainer");
     const count = container.querySelectorAll("video").length;
@@ -75,16 +52,15 @@ function updateLayout() {
     else container.style.gridTemplateColumns = "repeat(auto-fit, minmax(200px, 1fr))";
 }
 
-// ================= 👥 PARTICIPANTS =================
 function updateParticipants() {
     const count = document.querySelectorAll("#videoContainer video").length;
-    const text = count === 1 ? "P" : "Ps";
-
-    document.getElementById("participantsCount").innerText =
-        `👥 ${count} ${text}`;
+    const label = count === 1 ? "Participant" : "Participants";
+    const participantsCount = document.getElementById("participantsCount");
+    if (participantsCount) {
+        participantsCount.innerText = `👥 ${count} ${label}`;
+    }
 }
 
-// ================= CAMERA =================
 async function startCamera() {
     localStream = await navigator.mediaDevices.getUserMedia({
         video: true,
@@ -92,13 +68,77 @@ async function startCamera() {
     });
 
     video.srcObject = localStream;
-    video.muted = true; // self video always muted
+    video.muted = true;
 
     updateLayout();
     updateParticipants();
 }
 
-// ================= NAME POPUP =================
+function attachCommonPcHandlers(pc, id) {
+    pc.ontrack = (event) => {
+        let videoEl = document.getElementById(id);
+
+        if (!videoEl) {
+            videoEl = document.createElement("video");
+            videoEl.id = id;
+            videoEl.autoplay = true;
+            videoEl.playsInline = true;
+            videoEl.muted = false;
+
+            document.getElementById("videoContainer").appendChild(videoEl);
+            updateLayout();
+            updateParticipants();
+        }
+
+        const incomingStream = event.streams && event.streams[0];
+        if (!incomingStream) return;
+
+        if (videoEl.srcObject !== incomingStream) {
+            videoEl.srcObject = incomingStream;
+            videoEl.onloadedmetadata = () => {
+                videoEl.play().catch(err => {
+                    console.log("Video play error:", err);
+                });
+            };
+        }
+    };
+
+    pc.onicecandidate = (event) => {
+        if (event.candidate) {
+            socket.emit("ice-candidate", {
+                candidate: event.candidate,
+                to: id
+            });
+        }
+    };
+
+    pc.oniceconnectionstatechange = () => {
+        console.log("ICE state for", id, ":", pc.iceConnectionState);
+    };
+
+    pc.onconnectionstatechange = () => {
+        console.log("PC state for", id, ":", pc.connectionState);
+    };
+}
+
+function createPeerConnection(id) {
+    const existing = peerConnections[id];
+    if (existing) return existing;
+
+    const pc = new RTCPeerConnection(config);
+    peerConnections[id] = pc;
+    iceQueue[id] = [];
+
+    if (localStream) {
+        localStream.getTracks().forEach(track => {
+            pc.addTrack(track, localStream);
+        });
+    }
+
+    attachCommonPcHandlers(pc, id);
+    return pc;
+}
+
 const namePopup = document.getElementById("namePopup");
 const joinBtn = document.getElementById("joinBtn");
 const nameInput = document.getElementById("nameInput");
@@ -126,34 +166,15 @@ if (joinBtn) {
     });
 }
 
-// ================= SOCKET =================
 socket.on("connect", () => {
     console.log("Connected:", socket.id);
 });
 
-// ================= EXISTING USERS =================
 socket.on("existing-users", async (users) => {
-    for (let user of users) {
+    for (const user of users) {
         const { userId } = user;
 
-        const pc = new RTCPeerConnection(config);
-        peerConnections[userId] = pc;
-        iceQueue[userId] = [];
-
-        localStream.getTracks().forEach(track => {
-            pc.addTrack(track, localStream);
-        });
-
-        handleTrack(pc, userId);
-
-        pc.onicecandidate = (event) => {
-            if (event.candidate) {
-                socket.emit("ice-candidate", {
-                    candidate: event.candidate,
-                    to: userId
-                });
-            }
-        };
+        const pc = createPeerConnection(userId);
 
         const offer = await pc.createOffer();
         await pc.setLocalDescription(offer);
@@ -165,57 +186,20 @@ socket.on("existing-users", async (users) => {
     }
 });
 
-// ================= USER JOINED =================
 socket.on("user-joined", async ({ userId }) => {
     if (hasLeft) return;
-
-    const pc = new RTCPeerConnection(config);
-    peerConnections[userId] = pc;
-    iceQueue[userId] = [];
-
-    localStream.getTracks().forEach(track => {
-        pc.addTrack(track, localStream);
-    });
-
-    handleTrack(pc, userId);
-
-    pc.onicecandidate = (event) => {
-        if (event.candidate) {
-            socket.emit("ice-candidate", {
-                candidate: event.candidate,
-                to: userId
-            });
-        }
-    };
+    createPeerConnection(userId);
 });
 
-// ================= OFFER =================
 socket.on("offer", async ({ offer, from }) => {
     if (hasLeft) return;
 
-    const pc = new RTCPeerConnection(config);
-    peerConnections[from] = pc;
-    iceQueue[from] = [];
-
-    localStream.getTracks().forEach(track => {
-        pc.addTrack(track, localStream);
-    });
-
-    handleTrack(pc, from);
-
-    pc.onicecandidate = (event) => {
-        if (event.candidate) {
-            socket.emit("ice-candidate", {
-                candidate: event.candidate,
-                to: from
-            });
-        }
-    };
+    const pc = createPeerConnection(from);
 
     await pc.setRemoteDescription(offer);
 
-    if (iceQueue[from]) {
-        for (let c of iceQueue[from]) {
+    if (iceQueue[from] && iceQueue[from].length > 0) {
+        for (const c of iceQueue[from]) {
             await pc.addIceCandidate(c);
         }
         iceQueue[from] = [];
@@ -230,15 +214,17 @@ socket.on("offer", async ({ offer, from }) => {
     });
 });
 
-// ================= ANSWER =================
 socket.on("answer", async ({ answer, from }) => {
     const pc = peerConnections[from];
     if (pc) {
-        await pc.setRemoteDescription(answer);
+        try {
+            await pc.setRemoteDescription(answer);
+        } catch (err) {
+            console.log("Answer error:", err);
+        }
     }
 });
 
-// ================= ICE =================
 socket.on("ice-candidate", async ({ candidate, from }) => {
     const pc = peerConnections[from];
     if (!pc) return;
@@ -256,7 +242,6 @@ socket.on("ice-candidate", async ({ candidate, from }) => {
     }
 });
 
-// ================= USER LEFT =================
 socket.on("user-left", (userId) => {
     const videoEl = document.getElementById(userId);
     if (videoEl) {
@@ -271,10 +256,11 @@ socket.on("user-left", (userId) => {
         delete peerConnections[userId];
     }
 
-    delete iceQueue[userId];
+    if (iceQueue[userId]) {
+        delete iceQueue[userId];
+    }
 });
 
-// ================= MUTE =================
 const muteBtn = document.getElementById("muteBtn");
 let isMuted = false;
 
@@ -294,7 +280,6 @@ if (muteBtn) {
     });
 }
 
-// ================= LEAVE =================
 const leaveBtn = document.getElementById("leaveBtn");
 
 if (leaveBtn) {
@@ -307,6 +292,7 @@ if (leaveBtn) {
 
         Object.values(peerConnections).forEach(pc => pc.close());
         peerConnections = {};
+        iceQueue = {};
 
         const videoContainer = document.getElementById("videoContainer");
         if (videoContainer) {
@@ -323,19 +309,45 @@ if (leaveBtn) {
     });
 }
 
-// ================= SHARE =================
 const shareBtn = document.getElementById("shareBtn");
 const popup = document.getElementById("sharePopup");
 const closePopup = document.getElementById("closePopup");
 
-const roomIdText = document.getElementById("roomIdText");
+const roomIdInput = document.getElementById("roomIdText");
+const linkInput = document.getElementById("linkText");
 const copyRoomBtn = document.getElementById("copyRoomBtn");
 const copyLinkBtn = document.getElementById("copyLinkBtn");
 
-if (shareBtn && popup && roomIdText) {
+function copyText(text, button) {
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(text);
+    } else {
+        const temp = document.createElement("textarea");
+        temp.value = text;
+        document.body.appendChild(temp);
+        temp.select();
+        document.execCommand("copy");
+        document.body.removeChild(temp);
+    }
+
+    const old = button.innerHTML;
+    button.textContent = "Copied!";
+    setTimeout(() => {
+        button.innerHTML = old;
+    }, 1200);
+}
+
+if (shareBtn && popup) {
     shareBtn.addEventListener("click", () => {
-        popup.style.display = "block";
-        roomIdText.innerText = roomId;
+        popup.style.display = "flex";
+
+        if (roomIdInput) {
+            roomIdInput.value = roomId || "";
+        }
+
+        if (linkInput) {
+            linkInput.value = `${window.location.origin}/room/${roomId}`;
+        }
     });
 }
 
@@ -345,19 +357,22 @@ if (closePopup && popup) {
     });
 }
 
+if (popup) {
+    popup.addEventListener("click", (e) => {
+        if (e.target === popup) {
+            popup.style.display = "none";
+        }
+    });
+}
+
 if (copyRoomBtn) {
     copyRoomBtn.addEventListener("click", () => {
-        navigator.clipboard.writeText(roomId);
-        copyRoomBtn.innerText = "Copied!";
-        setTimeout(() => copyRoomBtn.innerText = "Copy", 1500);
+        copyText(roomId || "", copyRoomBtn);
     });
 }
 
 if (copyLinkBtn) {
     copyLinkBtn.addEventListener("click", () => {
-        const fullLink = `${window.location.origin}/room/${roomId}`;
-        navigator.clipboard.writeText(fullLink);
-        copyLinkBtn.innerText = "Copied!";
-        setTimeout(() => copyLinkBtn.innerText = "Copy", 1500);
+        copyText(`${window.location.origin}/room/${roomId}`, copyLinkBtn);
     });
 }

@@ -2,10 +2,8 @@
 <html>
 <head>
   <title>Videomeet Room</title>
-
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 
-  <!-- Icons -->
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
   <style>
@@ -13,14 +11,13 @@
       margin: 0;
       background: #0f172a;
       color: white;
-      font-family: Arial;
+      font-family: Arial, sans-serif;
       display: flex;
       flex-direction: column;
       height: 100vh;
       overflow: hidden;
     }
 
-    /* Video Grid */
     #videoContainer {
       flex: 1;
       display: grid;
@@ -36,39 +33,31 @@
       background: black;
     }
 
-    /*  MODERN CONTROL BAR */
     .controls {
       position: fixed;
       bottom: 20px;
       left: 50%;
       transform: translateX(-50%);
-
       display: flex;
       align-items: center;
       gap: 15px;
-
-      background: rgba(15, 23, 42, 0.7);
+      background: rgba(15, 23, 42, 0.78);
       backdrop-filter: blur(12px);
-
       padding: 10px 15px;
       border-radius: 50px;
-
-      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      z-index: 1000;
     }
 
-    /*  Buttons */
     .controls button {
       width: 50px;
       height: 50px;
       border-radius: 50%;
-
       border: none;
       font-size: 20px;
-
       display: flex;
       align-items: center;
       justify-content: center;
-
       cursor: pointer;
       transition: 0.2s;
     }
@@ -78,35 +67,146 @@
     }
 
     .controls button:active {
-      transform: scale(0.9);
+      transform: scale(0.92);
     }
 
-    /*  Mute */
-    #muteBtn {
-      background: #1e293b;
-      color: white;
-    }
-
-    /*  Share */
+    #muteBtn,
     #shareBtn {
       background: #1e293b;
       color: white;
     }
 
-    /*  Leave */
     #leaveBtn {
-      background: red;
+      background: #dc2626;
       color: white;
     }
 
-    /* 👥 Participants */
     #participantsCount {
       font-size: 14px;
-      opacity: 0.8;
+      opacity: 0.85;
       margin-left: 5px;
+      white-space: nowrap;
     }
 
-    /* MOBILE */
+    /* Name popup */
+    #namePopup {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.82);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 2000;
+    }
+
+    .name-card {
+      background: white;
+      color: #111827;
+      padding: 22px;
+      border-radius: 14px;
+      text-align: center;
+      width: min(90vw, 340px);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+    }
+
+    .name-card h3 {
+      margin: 0 0 12px;
+    }
+
+    .name-card input {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 10px;
+      margin: 0 0 12px;
+      outline: none;
+    }
+
+    .name-card button {
+      width: 100%;
+      height: 42px;
+      border: none;
+      border-radius: 10px;
+      background: #2563eb;
+      color: white;
+      cursor: pointer;
+      font-size: 15px;
+    }
+
+    /* Share popup */
+    .share-popup-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(8px);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 2100;
+    }
+
+    .share-popup-card {
+      width: min(92vw, 420px);
+      background: #111827;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 18px;
+      padding: 20px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+    }
+
+    .share-popup-card h3 {
+      margin: 0 0 16px;
+      font-size: 20px;
+    }
+
+    .share-field {
+      margin-bottom: 14px;
+    }
+
+    .share-field label {
+      display: block;
+      font-size: 13px;
+      opacity: 0.75;
+      margin-bottom: 6px;
+    }
+
+    .share-row {
+      display: flex;
+    }
+
+    .share-row input {
+      flex: 1;
+      height: 42px;
+      padding: 0 12px;
+      border: none;
+      outline: none;
+      border-radius: 10px 0 0 10px;
+      background: #1f2937;
+      color: white;
+    }
+
+    .share-row button {
+      width: 50px;
+      height: 42px;
+      border: none;
+      border-radius: 0 10px 10px 0;
+      background: #2563eb;
+      color: white;
+      cursor: pointer;
+    }
+
+    .share-close-btn {
+      width: 100%;
+      height: 42px;
+      border: none;
+      border-radius: 10px;
+      background: #dc2626;
+      color: white;
+      cursor: pointer;
+      margin-top: 6px;
+    }
+
     @media (max-width: 768px) {
       #videoContainer {
         grid-template-columns: 1fr !important;
@@ -129,163 +229,73 @@
         height: 45px;
         font-size: 18px;
       }
+
+      #participantsCount {
+        font-size: 13px;
+      }
     }
-
-    /* 🔥 POPUP BACKDROP */
-.popup {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.6);
-  backdrop-filter: blur(8px);
-  z-index: 1000;
-
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-/* 🔥 CARD */
-.popup-card {
-  background: rgba(30, 41, 59, 0.9);
-  padding: 25px;
-  border-radius: 16px;
-  width: 90%;
-  max-width: 400px;
-
-  box-shadow: 0 20px 60px rgba(0,0,0,0.6);
-  text-align: center;
-}
-
-/* 🔥 SHARE BOX */
-.share-box {
-  margin-top: 15px;
-  text-align: left;
-}
-
-.share-box span {
-  font-size: 12px;
-  opacity: 0.7;
-}
-
-/* 🔥 COPY ROW */
-.copy-row {
-  display: flex;
-  margin-top: 5px;
-}
-
-.copy-row input {
-  flex: 1;
-  padding: 10px;
-  border: none;
-  border-radius: 8px 0 0 8px;
-  background: #0f172a;
-  color: white;
-}
-
-.copy-row button {
-  padding: 10px;
-  border: none;
-  background: #4A90E2;
-  color: white;
-  border-radius: 0 8px 8px 0;
-  cursor: pointer;
-}
-
-/* 🔥 CLOSE BUTTON */
-.close-btn {
-  margin-top: 20px;
-  padding: 10px;
-  width: 100%;
-  border: none;
-  border-radius: 10px;
-  background: red;
-  color: white;
-  cursor: pointer;
-}
   </style>
-
 </head>
 
 <body>
 
-  <!--  NAME POPUP -->
-  <div id="namePopup" style="
-    position:fixed;
-    top:0;
-    left:0;
-    width:100%;
-    height:100%;
-    background:rgba(0,0,0,0.8);
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    z-index:999;
-  ">
-    <div style="background:white; padding:20px; border-radius:10px; text-align:center;">
+  <div id="namePopup">
+    <div class="name-card">
       <h3>Enter your name</h3>
-      <input id="nameInput" type="text" placeholder="Your name" style="padding:8px; margin:10px;" />
-      <br>
-      <button id="joinBtn">Join</button>
+      <input id="nameInput" type="text" placeholder="Your name" />
+      <button id="joinBtn" type="button">Join</button>
     </div>
   </div>
 
-  <!--  Video Grid -->
   <div id="videoContainer">
     <video id="myVideo" autoplay muted playsinline></video>
   </div>
 
-  <!--  MODERN CONTROLS -->
   <div class="controls">
-
-    <button id="muteBtn" title="Mute">
+    <button id="muteBtn" title="Mute" type="button">
       <i class="ph ph-microphone"></i>
     </button>
 
-    <button id="shareBtn" title="Share">
+    <button id="shareBtn" title="Share" type="button">
       <i class="ph ph-share-network"></i>
     </button>
 
-    <button id="leaveBtn" title="Leave">
+    <button id="leaveBtn" title="Leave" type="button">
       <i class="ph ph-phone-disconnect"></i>
     </button>
 
     <span id="participantsCount">👥 1</span>
-
   </div>
 
-  <!-- MODERN SHARE POPUP -->
-<div id="sharePopup" class="popup">
+  <div id="sharePopup" class="share-popup-overlay">
+    <div class="share-popup-card">
+      <h3>Share Meeting</h3>
 
-  <div class="popup-card">
-
-    <h3>Share Meeting</h3>
-
-    <div class="share-box">
-      <span>Room ID</span>
-      <div class="copy-row">
-        <input id="roomIdText" readonly>
-        <button id="copyRoomBtn"><i class="ph ph-copy"></i></button>
+      <div class="share-field">
+        <label>Room ID</label>
+        <div class="share-row">
+          <input id="roomIdText" type="text" readonly />
+          <button id="copyRoomBtn" type="button">
+            <i class="ph ph-copy"></i>
+          </button>
+        </div>
       </div>
-    </div>
 
-    <div class="share-box">
-      <span>Invite Link</span>
-      <div class="copy-row">
-        <input id="linkText" readonly>
-        <button id="copyLinkBtn"><i class="ph ph-copy"></i></button>
+      <div class="share-field">
+        <label>Invite Link</label>
+        <div class="share-row">
+          <input id="linkText" type="text" readonly />
+          <button id="copyLinkBtn" type="button">
+            <i class="ph ph-copy"></i>
+          </button>
+        </div>
       </div>
+
+      <button id="closePopup" class="share-close-btn" type="button">Close</button>
     </div>
-
-    <button id="closePopup" class="close-btn">Close</button>
-
   </div>
 
-</div>
-
-  <!-- Scripts -->
   <script src="/socket.io/socket.io.js"></script>
   <script src="/app.js"></script>
-
 </body>
 </html>
