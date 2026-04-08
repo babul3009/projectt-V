@@ -120,7 +120,7 @@ socket.on("existing-users", async (users) => {
         videoEl.id = userId;
         videoEl.autoplay = true;
         videoEl.playsInline = true;
-        videoEl.muted = false;
+        videoEl.muted = true;
 
         document.getElementById("videoContainer").appendChild(videoEl);
         updateLayout();
@@ -176,7 +176,7 @@ socket.on("user-joined", async ({ userId, name }) => {
         videoEl.id = userId;
         videoEl.autoplay = true;
         videoEl.playsInline = true;
-        videoEl.muted = false;
+        videoEl.muted = true;
 
         document.getElementById("videoContainer").appendChild(videoEl);
         updateLayout();
@@ -225,7 +225,7 @@ socket.on("offer", async ({ offer, from }) => {
         videoEl.id = from;
         videoEl.autoplay = true;
         videoEl.playsInline = true;
-        videoEl.muted = false;
+        videoEl.muted = true;
 
         document.getElementById("videoContainer").appendChild(videoEl);
         updateLayout();
