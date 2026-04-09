@@ -17,26 +17,7 @@ const config = {
     iceServers: [
         { urls: "stun:stun.l.google.com:19302" },
         { urls: "stun:stun.relay.metered.ca:80" },
-        {
-            urls: "turn:global.relay.metered.ca:80",
-            username: "3efd3fe8e3626c590a5bc357",
-            credential: "8kh0ZpUAO1dbNVuK"
-        },
-        {
-            urls: "turn:global.relay.metered.ca:80?transport=tcp",
-            username: "3efd3fe8e3626c590a5bc357",
-            credential: "8kh0ZpUAO1dbNVuK"
-        },
-        {
-            urls: "turn:global.relay.metered.ca:443",
-            username: "3efd3fe8e3626c590a5bc357",
-            credential: "8kh0ZpUAO1dbNVuK"
-        },
-        {
-            urls: "turns:global.relay.metered.ca:443?transport=tcp",
-            username: "3efd3fe8e3626c590a5bc357",
-            credential: "8kh0ZpUAO1dbNVuK"
-        }
+
     ],
     iceCandidatePoolSize: 10
 };
