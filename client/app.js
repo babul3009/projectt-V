@@ -35,11 +35,16 @@ function updateLayout() {
         container.style.gridTemplateColumns = "1fr";
     } else if (count === 2) {
         container.classList.add("two-users");
-        container.style.gridTemplateColumns = "1fr";
+
+        if (window.innerWidth <= 768) {
+            container.style.gridTemplateColumns = "1fr";
+        } else {
+            container.style.gridTemplateColumns = "1fr 1fr";
+        }
     } else if (count <= 4) {
         container.style.gridTemplateColumns = "1fr 1fr";
     } else {
-        container.style.gridTemplateColumns = "repeat(auto-fit, minmax(200px, 1fr))";
+        container.style.gridTemplateColumns = "repeat(auto-fit, minmax(220px, 1fr))";
     }
 }
 
@@ -301,7 +306,9 @@ let lastTrigger = 0;
 
 function startGestureDetection() {
     const hands = new Hands({
-        locateFile: file => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+        locateFile: file => {
+    return `https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4/${file}`;
+}
     });
 
     hands.setOptions({
@@ -370,3 +377,6 @@ socket.on("heart-reaction", ({ userId }) => showHeart(userId));
 socket.on("thumbs-reaction", ({ userId }) => showThumbs(userId));
 socket.on("energy-reaction", ({ userId }) => showEnergy(userId));
 socket.on("flower-reaction", ({ userId }) => showFlower(userId));
+
+
+window.addEventListener("resize", updateLayout);
