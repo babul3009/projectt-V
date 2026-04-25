@@ -89,14 +89,44 @@ io.on("connection", (socket) => {
         });
     });
 
-    // ================= HEART REACTION =================
-    socket.on("heart-reaction", ({ roomId, userId }) => {
-        const targetRoom = roomId || socket.data.roomId;
+    // ================= REACTIONS =================
 
+    socket.on("heart-reaction", ({ roomId }) => {
+        const targetRoom = roomId || socket.data.roomId;
         if (!targetRoom) return;
 
         socket.to(targetRoom).emit("heart-reaction", {
-            userId: userId || socket.id,
+            userId: socket.id,
+            name: socket.data.name || "User"
+        });
+    });
+
+    socket.on("thumbs-reaction", ({ roomId }) => {
+        const targetRoom = roomId || socket.data.roomId;
+        if (!targetRoom) return;
+
+        socket.to(targetRoom).emit("thumbs-reaction", {
+            userId: socket.id,
+            name: socket.data.name || "User"
+        });
+    });
+
+    socket.on("energy-reaction", ({ roomId }) => {
+        const targetRoom = roomId || socket.data.roomId;
+        if (!targetRoom) return;
+
+        socket.to(targetRoom).emit("energy-reaction", {
+            userId: socket.id,
+            name: socket.data.name || "User"
+        });
+    });
+
+    socket.on("flower-reaction", ({ roomId }) => {
+        const targetRoom = roomId || socket.data.roomId;
+        if (!targetRoom) return;
+
+        socket.to(targetRoom).emit("flower-reaction", {
+            userId: socket.id,
             name: socket.data.name || "User"
         });
     });
