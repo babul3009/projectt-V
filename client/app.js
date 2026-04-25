@@ -18,13 +18,33 @@ const config = {
         { urls: "stun:stun.l.google.com:19302" },
         { urls: "stun:stun.relay.metered.ca:80" },
 
+        {
+            urls: "turn:global.relay.metered.ca:80",
+            username: "3efd3fe8e3626c590a5bc357",
+            credential: "8kh0ZpUAO1dbNVuK"
+        },
+        {
+            urls: "turn:global.relay.metered.ca:80?transport=tcp",
+            username: "3efd3fe8e3626c590a5bc357",
+            credential: "8kh0ZpUAO1dbNVuK"
+        },
+        {
+            urls: "turn:global.relay.metered.ca:443",
+            username: "3efd3fe8e3626c590a5bc357",
+            credential: "8kh0ZpUAO1dbNVuK"
+        },
+        {
+            urls: "turns:global.relay.metered.ca:443?transport=tcp",
+            username: "3efd3fe8e3626c590a5bc357",
+            credential: "8kh0ZpUAO1dbNVuK"
+        }
     ],
     iceCandidatePoolSize: 10
 };
 
 function updateLayout() {
     const container = document.getElementById("videoContainer");
-    const count = container.querySelectorAll("video").length;
+    const count = container.querySelectorAll(".video-wrapper").length;
 
     if (count === 1) container.style.gridTemplateColumns = "1fr";
     else if (count === 2) container.style.gridTemplateColumns = "1fr 1fr";
@@ -34,9 +54,10 @@ function updateLayout() {
 }
 
 function updateParticipants() {
-    const count = document.querySelectorAll("#videoContainer video").length;
+    const count = document.querySelectorAll("#videoContainer .video-wrapper").length;
     const label = count === 1 ? "Participant" : "Participants";
     const participantsCount = document.getElementById("participantsCount");
+
     if (participantsCount) {
         participantsCount.innerText = `👥 ${count} ${label}`;
     }
@@ -60,13 +81,19 @@ function attachCommonPcHandlers(pc, id) {
         let videoEl = document.getElementById(id);
 
         if (!videoEl) {
+            const wrapper = document.createElement("div");
+            wrapper.className = "video-wrapper";
+            wrapper.id = `wrapper-${id}`;
+
             videoEl = document.createElement("video");
             videoEl.id = id;
             videoEl.autoplay = true;
             videoEl.playsInline = true;
             videoEl.muted = false;
 
-            document.getElementById("videoContainer").appendChild(videoEl);
+            wrapper.appendChild(videoEl);
+            document.getElementById("videoContainer").appendChild(wrapper);
+
             updateLayout();
             updateParticipants();
         }
@@ -137,6 +164,8 @@ if (joinBtn) {
         namePopup.style.display = "none";
 
         await startCamera();
+
+        startHeartGestureDetection();
 
         if (!hasLeft && roomId) {
             socket.emit("join-room", {
@@ -225,9 +254,17 @@ socket.on("ice-candidate", async ({ candidate, from }) => {
 
 socket.on("user-left", (userId) => {
     const videoEl = document.getElementById(userId);
+
     if (videoEl) {
         videoEl.srcObject = null;
-        videoEl.remove();
+
+        const wrapper = document.getElementById(`wrapper-${userId}`);
+        if (wrapper) {
+            wrapper.remove();
+        } else {
+            videoEl.remove();
+        }
+
         updateLayout();
         updateParticipants();
     }
@@ -266,6 +303,8 @@ const leaveBtn = document.getElementById("leaveBtn");
 if (leaveBtn) {
     leaveBtn.addEventListener("click", () => {
         hasLeft = true;
+
+        stopHeartGestureDetection();
 
         if (localStream) {
             localStream.getTracks().forEach(track => track.stop());
@@ -357,3 +396,155 @@ if (copyLinkBtn) {
         copyText(`${window.location.origin}/room/${roomId}`, copyLinkBtn);
     });
 }
+
+/* =========================
+   Animated Heart Gesture
+========================= */
+
+let handsDetector = null;
+let handsCamera = null;
+let lastHeartTime = 0;
+let isDetectingHeart = false;
+
+function showAnimatedHeart(targetId = "myVideo") {
+    const wrapper = document.getElementById(`wrapper-${targetId}`);
+    if (!wrapper) return;
+
+    const heart = document.createElement("div");
+    heart.className = "heart-animation";
+
+    const glow = document.createElement("div");
+    glow.className = "heart-glow";
+    heart.appendChild(glow);
+
+    const particles = [
+        { x: "-90px", y: "-80px", left: "10%", top: "35%" },
+        { x: "90px", y: "-90px", left: "80%", top: "35%" },
+        { x: "-70px", y: "70px", left: "20%", top: "75%" },
+        { x: "75px", y: "65px", left: "75%", top: "75%" },
+        { x: "0px", y: "-120px", left: "50%", top: "20%" },
+        { x: "0px", y: "100px", left: "50%", top: "85%" }
+    ];
+
+    particles.forEach(p => {
+        const particle = document.createElement("span");
+        particle.className = "heart-particle";
+        particle.style.left = p.left;
+        particle.style.top = p.top;
+        particle.style.setProperty("--x", p.x);
+        particle.style.setProperty("--y", p.y);
+        heart.appendChild(particle);
+    });
+
+    wrapper.appendChild(heart);
+
+    setTimeout(() => {
+        heart.remove();
+    }, 1900);
+}
+
+function landmarkDistance(a, b) {
+    return Math.hypot(a.x - b.x, a.y - b.y);
+}
+
+function isHeartGesture(landmarksList) {
+    if (!landmarksList || landmarksList.length < 2) return false;
+
+    const handA = landmarksList[0];
+    const handB = landmarksList[1];
+
+    const indexTipA = handA[8];
+    const indexTipB = handB[8];
+
+    const thumbTipA = handA[4];
+    const thumbTipB = handB[4];
+
+    const wristA = handA[0];
+    const wristB = handB[0];
+
+    const indexDistance = landmarkDistance(indexTipA, indexTipB);
+    const thumbDistance = landmarkDistance(thumbTipA, thumbTipB);
+    const wristDistance = landmarkDistance(wristA, wristB);
+
+    const indexesClose = indexDistance < 0.12;
+    const thumbsClose = thumbDistance < 0.14;
+    const wristsApart = wristDistance > 0.18;
+
+    return indexesClose && thumbsClose && wristsApart;
+}
+
+function startHeartGestureDetection() {
+    if (isDetectingHeart) return;
+
+    if (!window.Hands || !window.Camera) {
+        console.log("MediaPipe Hands not loaded");
+        return;
+    }
+
+    if (!video || !localStream) return;
+
+    isDetectingHeart = true;
+
+    handsDetector = new Hands({
+        locateFile: file => {
+            return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
+        }
+    });
+
+    handsDetector.setOptions({
+        maxNumHands: 2,
+        modelComplexity: 1,
+        minDetectionConfidence: 0.75,
+        minTrackingConfidence: 0.75
+    });
+
+    handsDetector.onResults(results => {
+        if (!results.multiHandLandmarks) return;
+
+        if (isHeartGesture(results.multiHandLandmarks)) {
+            const now = Date.now();
+
+            if (now - lastHeartTime > 2500) {
+                lastHeartTime = now;
+
+                showAnimatedHeart("myVideo");
+
+                socket.emit("heart-reaction", {
+                    roomId,
+                    userId: socket.id
+                });
+            }
+        }
+    });
+
+    handsCamera = new Camera(video, {
+        onFrame: async () => {
+            if (!hasLeft && video.readyState >= 2 && handsDetector) {
+                await handsDetector.send({ image: video });
+            }
+        },
+        width: 640,
+        height: 480
+    });
+
+    handsCamera.start();
+}
+
+function stopHeartGestureDetection() {
+    isDetectingHeart = false;
+
+    if (handsCamera) {
+        try {
+            handsCamera.stop();
+        } catch (err) {
+            console.log("Camera stop error:", err);
+        }
+    }
+
+    handsCamera = null;
+    handsDetector = null;
+}
+
+socket.on("heart-reaction", ({ userId }) => {
+    showAnimatedHeart(userId);
+});

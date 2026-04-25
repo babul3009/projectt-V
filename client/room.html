@@ -6,6 +6,10 @@
 
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
+  <!-- MediaPipe Hands -->
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+
   <style>
     body {
       margin: 0;
@@ -25,12 +29,150 @@
       padding: 10px;
     }
 
+    .video-wrapper {
+      position: relative;
+      overflow: hidden;
+      border-radius: 10px;
+      background: black;
+    }
+
     video {
       width: 100%;
       aspect-ratio: 16 / 9;
       object-fit: cover;
       border-radius: 10px;
       background: black;
+      display: block;
+    }
+
+    #myVideo {
+      transform: scaleX(-1);
+    }
+
+    #videoContainer video:not(#myVideo) {
+      transform: none;
+    }
+
+    .heart-animation {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 120px;
+      height: 120px;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      z-index: 50;
+      animation: heartFloat 1.8s ease-out forwards;
+    }
+
+    .heart-animation::before,
+    .heart-animation::after {
+      content: "";
+      position: absolute;
+      width: 65px;
+      height: 100px;
+      background: linear-gradient(135deg, #ff2d75, #ff0055);
+      border-radius: 65px 65px 0 0;
+      box-shadow: 0 0 25px rgba(255, 0, 100, 0.8);
+    }
+
+    .heart-animation::before {
+      left: 60px;
+      top: 10px;
+      transform: rotate(-45deg);
+      transform-origin: 0 100%;
+    }
+
+    .heart-animation::after {
+      left: -5px;
+      top: 10px;
+      transform: rotate(45deg);
+      transform-origin: 100% 100%;
+    }
+
+    .heart-glow {
+      position: absolute;
+      inset: -25px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255, 0, 100, 0.45), transparent 65%);
+      animation: glowPulse 1.8s ease-out forwards;
+    }
+
+    .heart-particle {
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      background: #ff4d8d;
+      transform: rotate(45deg);
+      animation: particleFly 1.4s ease-out forwards;
+    }
+
+    .heart-particle::before,
+    .heart-particle::after {
+      content: "";
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      background: #ff4d8d;
+      border-radius: 50%;
+    }
+
+    .heart-particle::before {
+      left: -7px;
+      top: 0;
+    }
+
+    .heart-particle::after {
+      left: 0;
+      top: -7px;
+    }
+
+    @keyframes heartFloat {
+      0% {
+        opacity: 0;
+        transform: translate(-50%, -40%) scale(0.2) rotate(-10deg);
+      }
+      20% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1.15) rotate(5deg);
+      }
+      45% {
+        transform: translate(-50%, -50%) scale(0.95) rotate(-3deg);
+      }
+      70% {
+        opacity: 1;
+        transform: translate(-50%, -75%) scale(1.1) rotate(3deg);
+      }
+      100% {
+        opacity: 0;
+        transform: translate(-50%, -120%) scale(0.8) rotate(0deg);
+      }
+    }
+
+    @keyframes glowPulse {
+      0% {
+        opacity: 0;
+        transform: scale(0.5);
+      }
+      35% {
+        opacity: 1;
+        transform: scale(1.1);
+      }
+      100% {
+        opacity: 0;
+        transform: scale(1.7);
+      }
+    }
+
+    @keyframes particleFly {
+      0% {
+        opacity: 1;
+        transform: translate(0, 0) scale(1) rotate(45deg);
+      }
+      100% {
+        opacity: 0;
+        transform: translate(var(--x), var(--y)) scale(0.4) rotate(45deg);
+      }
     }
 
     .controls {
@@ -88,7 +230,6 @@
       white-space: nowrap;
     }
 
-    /* Name popup */
     #namePopup {
       position: fixed;
       inset: 0;
@@ -134,7 +275,6 @@
       font-size: 15px;
     }
 
-    /* Share popup */
     .share-popup-overlay {
       position: fixed;
       inset: 0;
@@ -214,7 +354,8 @@
         gap: 8px;
       }
 
-      video {
+      video,
+      .video-wrapper {
         border-radius: 8px;
       }
 
@@ -234,14 +375,6 @@
         font-size: 13px;
       }
     }
-
-    #myVideo {
-  transform: scaleX(-1);
-}
-
-#videoContainer video:not(#myVideo) {
-  transform: none;
-}
   </style>
 </head>
 
@@ -256,7 +389,9 @@
   </div>
 
   <div id="videoContainer">
-    <video id="myVideo" autoplay muted playsinline></video>
+    <div class="video-wrapper" id="wrapper-myVideo">
+      <video id="myVideo" autoplay muted playsinline></video>
+    </div>
   </div>
 
   <div class="controls">

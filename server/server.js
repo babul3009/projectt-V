@@ -25,8 +25,6 @@ app.get("/leave", (req, res) => {
     res.sendFile(path.join(__dirname, "../client", "leave.html"));
 });
 
-
-
 // ================= SOCKET =================
 
 io.on("connection", (socket) => {
@@ -34,15 +32,13 @@ io.on("connection", (socket) => {
 
     // ================= JOIN ROOM =================
     socket.on("join-room", ({ roomId, name }) => {
-
         socket.join(roomId);
 
-        // ✅ store name safely
         socket.data.name = name || "User";
+        socket.data.roomId = roomId;
 
         console.log(`${socket.data.name} (${socket.id}) joined room: ${roomId}`);
 
-        // 🔥 GET EXISTING USERS
         const users = [];
         const socketsInRoom = io.sockets.adapter.rooms.get(roomId);
 
@@ -58,10 +54,8 @@ io.on("connection", (socket) => {
             });
         }
 
-        // 🔥 SEND EXISTING USERS TO NEW USER
         socket.emit("existing-users", users);
 
-        // 🔥 NOTIFY OTHERS
         socket.to(roomId).emit("user-joined", {
             userId: socket.id,
             name: socket.data.name
@@ -92,6 +86,18 @@ io.on("connection", (socket) => {
             candidate,
             from: socket.id,
             name: socket.data.name
+        });
+    });
+
+    // ================= HEART REACTION =================
+    socket.on("heart-reaction", ({ roomId, userId }) => {
+        const targetRoom = roomId || socket.data.roomId;
+
+        if (!targetRoom) return;
+
+        socket.to(targetRoom).emit("heart-reaction", {
+            userId: userId || socket.id,
+            name: socket.data.name || "User"
         });
     });
 
