@@ -123,12 +123,34 @@ function attachCommonPcHandlers(pc, id) {
     };
 
     pc.oniceconnectionstatechange = () => {
-        console.log("ICE state for", id, ":", pc.iceConnectionState);
-    };
+    console.log("ICE state for", id, ":", pc.iceConnectionState);
 
-    pc.onconnectionstatechange = () => {
-        console.log("PC state for", id, ":", pc.connectionState);
-    };
+    if (pc.iceConnectionState === "failed") {
+        console.warn("ICE failed for", id, "— attempting restartIce()");
+        pc.restartIce();
+    }
+
+    if (pc.iceConnectionState === "disconnected") {
+        console.warn("ICE disconnected for", id, "— waiting 4s before restart");
+        setTimeout(() => {
+            if (pc.iceConnectionState === "disconnected" || 
+                pc.iceConnectionState === "failed") {
+                pc.restartIce();
+            }
+        }, 4000);
+    }
+};
+
+pc.onconnectionstatechange = () => {
+    console.log("PC state for", id, ":", pc.connectionState);
+
+    if (pc.connectionState === "failed") {
+        console.warn("PC failed for", id, "— closing");
+        pc.close();
+        delete peerConnections[id];
+        delete iceQueue[id];
+    }
+};
 }
 
 function createPeerConnection(id) {
