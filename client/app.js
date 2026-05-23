@@ -17,10 +17,9 @@ const config = {
     iceServers: [
         { urls: "stun:stun.l.google.com:19302" },
       {
-        urls: "free.expressturn.com:3478",
-        username: "000000002093319495",
-        credential: "gKLrAPC34ToziOGKapHvFzRrq8w=",
-      },
+     urls: "turn:global.relay.metered.ca:80",
+        username: "7bd5b8db8ed54050a7ddf2ae",
+        credential: "/pmMQyRm4I1WiQV2",
       {
         urls: "turn:global.relay.metered.ca:80?transport=tcp",
         username: "7bd5b8db8ed54050a7ddf2ae",
