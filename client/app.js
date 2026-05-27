@@ -21,10 +21,17 @@ const config = {
         urls: "stun:stun.relay.metered.ca:80",
       },
       {
-        urls: "turn:global.relay.metered.ca:80",
-        username: "7bd5b8db8ed54050a7ddf2ae",
-        credential: "/pmMQyRm4I1WiQV2",
+        urls: "turn:free.expressturn.com:3478?transport=udp",
+        username: "000000002094912743",
+        credential: "aoNwmERoaZXfKYuNF3CQd5j4TC0=",
       },
+
+          {
+        urls: "turn:free.expressturn.com:3478?transport=tcp",
+        username: "000000002094912743",
+        credential: "aoNwmERoaZXfKYuNF3CQd5j4TC0=",
+      }, 
+        
       {
         urls: "turn:global.relay.metered.ca:80?transport=tcp",
         username: "7bd5b8db8ed54050a7ddf2ae",
